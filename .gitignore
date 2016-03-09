@@ -4,7 +4,7 @@ Data/
 test/
 tmp/
 cmake_install.cmake
-BI
+cuvette
 G4History.macro
 Makefile
 *.ods
