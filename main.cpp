@@ -29,6 +29,10 @@
 #include "BIActionInitialization.hpp"
 
 
+/*
+Changing something
+*/
+
 namespace
 {
    void PrintUsage()

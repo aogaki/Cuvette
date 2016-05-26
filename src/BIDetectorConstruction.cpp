@@ -109,7 +109,7 @@ G4VPhysicalVolume *BIDetectorConstruction::Construct()
    // geometry parameters for cuvette
    G4double innerW = 10.*mm; // X direction
    G4double innerL = 10.*mm; // Z
-   G4double innerH = 46.*mm; // Y
+   G4double innerH = 45.*mm; // Y
    G4double cuvetteT = 1.25*mm; 
    G4double coverT = cuvetteT * 2;
    
