@@ -41,6 +41,10 @@ private:
    G4Material *fWaterMat;
    G4Material *fCoverMat;
    G4Material *fTissueMat;
+
+   G4Material *fQuartzMat;
+   G4Material *fPlasticMat;
+   G4Material *fGlassMat;
    
    // Geometries
    

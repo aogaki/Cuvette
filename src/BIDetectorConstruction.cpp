@@ -55,7 +55,10 @@ BIDetectorConstruction::BIDetectorConstruction(G4bool forGrid, G4bool useTile)
      fCuvetteMat(nullptr),
      fWaterMat(nullptr),
      fCoverMat(nullptr),
-     fTissueMat(nullptr)
+     fTissueMat(nullptr),
+     fQuartzMat(nullptr),
+     fPlasticMat(nullptr),
+     fGlassMat(nullptr)
 {
    fCut = false;
    fCheckOverlap = true;
@@ -73,13 +76,23 @@ void BIDetectorConstruction::DefineMaterial()
 {
    G4NistManager *manager = G4NistManager::Instance();
 
+   fQuartzMat = new G4Material("quartz", 2.200*g/cm3, 2);
+   G4Element *Si = manager->FindOrBuildElement("Si");
+   G4Element *O = manager->FindOrBuildElement("O");
+   fQuartzMat->AddElement(Si, 1);
+   fQuartzMat->AddElement(O , 2);
+
    // NIST database materials
    fVacuumMat = manager->FindOrBuildMaterial("G4_Galactic");
    fAirMat = manager->FindOrBuildMaterial("G4_AIR");
    fWaterMat = manager->FindOrBuildMaterial("G4_WATER");
    fCoverMat = manager->FindOrBuildMaterial("G4_TEFLON");
-   fCuvetteMat = manager->BuildMaterialWithNewDensity("G4_OPTICAL_GLASS", "G4_GLASS_PLATE",
-                                                   2.55*g/cm3);
+   fGlassMat = manager->FindOrBuildMaterial("G4_GLASS_PLATE");
+   fPlasticMat = manager->FindOrBuildMaterial("G4_PLEXIGLASS");
+
+   fCuvetteMat = fQuartzMat;
+   //fCuvetteMat = fPlasticMat;
+   //fCuvetteMat = fGlassMat;
    
    // This shuld be changed (i.e. fLangMat, fHeartMat, or etc.)
    fTissueMat = manager->BuildMaterialWithNewDensity("G4_WATER_MODIFIED","G4_WATER",
@@ -131,6 +144,11 @@ G4VPhysicalVolume *BIDetectorConstruction::Construct()
    waterLV->SetVisAttributes(visAttributes);
    fVisAttributes.push_back(visAttributes);
 
+   G4ThreeVector waterPos = G4ThreeVector(0., -(coverT - cuvetteT) / 2., 0.);
+   new G4PVPlacement(nullptr, waterPos, waterLV, "Water", cuvetteLV,
+                     false, 0, fCheckOverlap);
+
+/*
    // tissues
    G4double tissueDia = 8.*mm;
    G4double tissueT = 200.*um;
@@ -143,12 +161,7 @@ G4VPhysicalVolume *BIDetectorConstruction::Construct()
    G4ThreeVector tissuePos = G4ThreeVector(0., 0., 0.);
    new G4PVPlacement(nullptr, tissuePos, tissueLV, "Tissue", cuvetteLV,
                      false, 0, fCheckOverlap);
-   
-   
-   G4ThreeVector waterPos = G4ThreeVector(0., -(coverT - cuvetteT) / 2., 0.);
-   new G4PVPlacement(nullptr, waterPos, waterLV, "Water", cuvetteLV,
-                     false, 0, fCheckOverlap);
-
+*/   
    // cover of cuvette
    G4Box *coverS = new G4Box("Cover", cuvetteW / 2., coverT / 2., cuvetteL / 2.);
    G4LogicalVolume *coverLV = new G4LogicalVolume(coverS, fCoverMat, "Cover");
