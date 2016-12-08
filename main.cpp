@@ -10,6 +10,7 @@
 #include "G4UImanager.hh"
 #include "FTFP_BERT.hh"
 #include "QGSP_BERT_HP.hh"
+#include "QGSP_BIC_HP.hh"
 #include "Shielding.hh"
 
 #ifdef G4VIS_USE
@@ -24,23 +25,22 @@
 // Remove?
 #include "Randomize.hh"
 
-#include "BIPhysicsList.hpp"
+#include "BIDNAPhysicsList.hpp"
 #include "BIDetectorConstruction.hpp"
 #include "BIActionInitialization.hpp"
+#include "BIPrimaryGeneratorAction.hpp"
 
 
-/*
-Changing something
-*/
-
-namespace
-{
+namespace {
    void PrintUsage()
    {
       G4cerr << " Usage: " << G4endl;
       G4cerr << " ./LG [-m macro filename]\n"
              << " -a Show all trajectory (default show only ploton)\n"
-             << " --oldbeam Using Green's article beam profile\n"
+             << " -q Using only quarter region of the plate\n"
+             << " -b [beam profile number] Choose beam profile\n"
+             << " -h cutting and showing the geometry\n"
+             << "    Can I use some option of Geant4 itself?\n"
              << " --grid For Grid system, output is only a few parameters\n"
              << " --tile Using tile attenuator\n"
              << G4endl;
@@ -49,18 +49,19 @@ namespace
 
 unsigned int GetRandomSeed()
 {
-   unsigned int seed; 
-   std::ifstream file ("/dev/urandom", std::ios::binary);
-   if (file.is_open()){
+   // Using /dev/urandom for generating random number.
+   // If it is not, I have to think solution.
+   unsigned int seed;
+   std::ifstream file("/dev/urandom", std::ios::binary);
+   if (file.is_open()) {
       char *memblock;
       int size = sizeof(int);
       memblock = new char[size];
       file.read(memblock, size);
       file.close();
-      seed = *reinterpret_cast<int*>(memblock);
+      seed = *reinterpret_cast<int *>(memblock);
       delete[] memblock;
-   }
-   else{
+   } else {
       seed = 0;
    }
 
@@ -71,33 +72,43 @@ int main(int argc, char **argv)
 {
    G4String macro = "";
    G4bool showAll = false;
-   G4bool useOldBeam = false;
+   BeamType beamType = kSecondBeam;
    G4bool forGrid = false;
-   G4bool useTile = false;
+   G4bool useQuarter = false;
    for (G4int i = 1; i < argc; i++) {
       if (G4String(argv[i]) == "-m") macro = argv[++i];
       else if (G4String(argv[i]) == "-a") showAll = true;
-      else if (G4String(argv[i]) == "--oldbeam") useOldBeam = true;
+      else if (G4String(argv[i]) == "-q") useQuarter = true;
+      else if (G4String(argv[i]) == "-b"){
+         G4String type = *argv[++i];
+         if(type == "1") beamType = kFirstBeam;
+         else if(type == "2") beamType = kSecondBeam;
+         else if(type == "3") beamType = kThirdBeam;
+         else if(type == "0") beamType = kElectronTest;
+         else{
+            G4cout << "Beam type is wrong" << G4endl;
+            PrintUsage();
+            return 1;
+         }
+      }
       else if (G4String(argv[i]) == "--grid") forGrid = true;
-      else if (G4String(argv[i]) == "--tile") useTile = true;
       else {
          PrintUsage();
          return 1;
       }
    }
 
-   if(useOldBeam){
-      G4cout << "Use Old Beam" << G4endl;
-   }
-   if(forGrid){
+   G4cout << "Beam type is " << beamType << G4endl;
+
+   if (forGrid) {
       G4cout << "Small output mode" << G4endl;
    }
-   
+
    // Remove?
    // Choose the Random engine
    CLHEP::HepRandom::setTheEngine(new CLHEP::RanecuEngine);
-   G4int seed = GetRandomSeed();
-   if(seed == 0) seed = time(0);
+   unsigned int seed = GetRandomSeed();
+   if (seed == 0) seed = time(0);
    G4cout << "\nseed = " << seed << G4endl;
    CLHEP::HepRandom::setTheSeed(seed);
    G4Random::setTheSeed(seed);
@@ -116,21 +127,22 @@ int main(int argc, char **argv)
    // Set mandatory initialization classes
    //
    // Detector construction
-   runManager->SetUserInitialization(new BIDetectorConstruction(forGrid, useTile));
+   runManager->SetUserInitialization(new BIDetectorConstruction(forGrid));
 
    // Physics list
    //G4VModularPhysicsList *physicsList = new FTFP_BERT;
    //G4VModularPhysicsList *physicsList = new QGSP_BERT_HP;
+   //G4VModularPhysicsList *physicsList = new QGSP_BIC_HP;
    G4VModularPhysicsList *physicsList = new Shielding;
-   //G4VModularPhysicsList *physicsList = new BIPhysicsList;
+   //G4VModularPhysicsList *physicsList = new BIDNAPhysicsList;
    physicsList->SetVerboseLevel(0);
-   //physicsList->SetCutValue(1.*um, "proton");
-   //physicsList->SetCuts();
-   //physicsList->SetDefaultCutValue(100.*um);
+   physicsList->SetCutValue(1.*um, "proton");
+   physicsList->SetCuts();
+   physicsList->SetDefaultCutValue(100.*um);
    runManager->SetUserInitialization(physicsList);
 
    // Primary generator action and User action intialization
-   runManager->SetUserInitialization(new BIActionInitialization(useOldBeam, forGrid));
+   runManager->SetUserInitialization(new BIActionInitialization(beamType, forGrid, useQuarter));
 
    // Initialize G4 kernel
    //
@@ -140,7 +152,7 @@ int main(int argc, char **argv)
    // Initialize visualization
    G4VisManager *visManager = new G4VisExecutive;
    visManager->Initialize();
-   
+
    if (!showAll) { //Show only proton
       G4TrajectoryParticleFilter *filterp = new G4TrajectoryParticleFilter;
       filterp->Add("proton");

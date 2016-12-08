@@ -19,7 +19,7 @@
 class BIDetectorConstruction : public G4VUserDetectorConstruction
 {
 public:
-   BIDetectorConstruction(G4bool forGrid, G4bool useTileAtt);
+   BIDetectorConstruction(G4bool forGrid);
    virtual ~BIDetectorConstruction();
 
    virtual G4VPhysicalVolume *Construct();
@@ -28,7 +28,6 @@ public:
 private:
    G4bool fCut;
    G4bool fForGrid;
-   G4bool fUseTileAtt;
    
    G4LogicalVolume *fWorldLV;
    G4bool fCheckOverlap;
@@ -47,6 +46,7 @@ private:
    G4Material *fGlassMat;
    
    // Geometries
+   G4LogicalVolume *ConstructCuvette();
    
    std::vector<G4VisAttributes *> fVisAttributes;
 };
