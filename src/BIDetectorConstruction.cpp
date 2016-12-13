@@ -92,6 +92,7 @@ void BIDetectorConstruction::DefineMaterial()
    //fCuvetteMat = fQuartzMat;
    //fCuvetteMat = fPlasticMat;
    fCuvetteMat = fGlassMat;
+   //fCuvetteMat = fVacuumMat;
    
    // This shuld be changed (i.e. fLangMat, fHeartMat, or etc.)
    fTissueMat = manager->BuildMaterialWithNewDensity("G4_WATER_MODIFIED","G4_WATER",

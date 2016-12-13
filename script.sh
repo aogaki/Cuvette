@@ -1,12 +1,14 @@
 #!/bin/bash
 
-echo "/run/beamOn 10000000" > tmp.mac
+echo "/run/beamOn 50000000" > tmp.mac
 
-./cuvetteGlass --grid -m tmp.mac
-hadd -f glass.root result_t*
+for matName in plastic
+do
+    for((i=0;i<200;i++))
+    do
+	./$matName --grid -s -m tmp.mac
+	hadd -f $matName$i.root /dev/shm/result_t*
+    done
+done
 
-./cuvettePlastic --grid -m tmp.mac
-hadd -f plastic.root result_t*
-
-./cuvetteQuartz --grid -m tmp.mac
-hadd -f quartz.root result_t*
+rm -f /dev/shm/result*

@@ -39,6 +39,7 @@ namespace {
              << " -a Show all trajectory (default show only ploton)\n"
              << " -q Using only quarter region of the plate\n"
              << " -b [beam profile number] Choose beam profile\n"
+             << " -s Using /dev/shm for temporary output\n"
              << " -h cutting and showing the geometry\n"
              << "    Can I use some option of Geant4 itself?\n"
              << " --grid For Grid system, output is only a few parameters\n"
@@ -75,10 +76,12 @@ int main(int argc, char **argv)
    BeamType beamType = kSecondBeam;
    G4bool forGrid = false;
    G4bool useQuarter = false;
+   G4bool useShm = false;
    for (G4int i = 1; i < argc; i++) {
       if (G4String(argv[i]) == "-m") macro = argv[++i];
       else if (G4String(argv[i]) == "-a") showAll = true;
       else if (G4String(argv[i]) == "-q") useQuarter = true;
+      else if (G4String(argv[i]) == "-s") useShm = true;
       else if (G4String(argv[i]) == "-b"){
          G4String type = *argv[++i];
          if(type == "1") beamType = kFirstBeam;
@@ -142,7 +145,7 @@ int main(int argc, char **argv)
    runManager->SetUserInitialization(physicsList);
 
    // Primary generator action and User action intialization
-   runManager->SetUserInitialization(new BIActionInitialization(beamType, forGrid, useQuarter));
+   runManager->SetUserInitialization(new BIActionInitialization(beamType, forGrid, useQuarter, useShm));
 
    // Initialize G4 kernel
    //

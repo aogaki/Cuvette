@@ -6,10 +6,11 @@
 #include "BIRunAction.hpp"
 
 
-BIRunAction::BIRunAction(G4bool gridFlag)
+BIRunAction::BIRunAction(G4bool gridFlag, G4bool shmFlag)
    : G4UserRunAction()
 {
    fForGrid = gridFlag;
+   fUseShm = shmFlag;
 }
 
 BIRunAction::~BIRunAction()
@@ -23,8 +24,9 @@ void BIRunAction::BeginOfRunAction(const G4Run *)
    anaMan->SetVerboseLevel(1);
    G4cout << "Using " << anaMan->GetType()
           << " analysis manager" << G4endl;
-   //G4String fileName = "/dev/shm/result";
    G4String fileName = "result";
+   if(fUseShm) fileName = "/dev/shm/result";
+
    anaMan->OpenFile(fileName);
 
    // Ntuple
