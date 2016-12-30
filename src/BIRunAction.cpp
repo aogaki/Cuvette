@@ -62,6 +62,10 @@ void BIRunAction::BeginOfRunAction(const G4Run *)
 
       anaMan->CreateNtupleIColumn(0, "TrackID");
     
+      anaMan->CreateNtupleDColumn(0, "localX");
+      anaMan->CreateNtupleDColumn(0, "localY");
+      anaMan->CreateNtupleDColumn(0, "localZ");
+
       anaMan->CreateNtuple("InitPar", "Initial Parameters");
       anaMan->CreateNtupleIColumn(1, "PDGCode");
       anaMan->CreateNtupleDColumn(1, "Energy");

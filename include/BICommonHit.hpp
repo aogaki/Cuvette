@@ -45,6 +45,9 @@ public:
    void SetPrePosition(G4ThreeVector pos) {fPrePosition = pos;};
    G4ThreeVector GetPrePosition() {return fPrePosition;};
    
+   void SetLocalPosition(G4ThreeVector pos) {fLocalPosition = pos;};
+   G4ThreeVector GetLocalPosition() {return fLocalPosition;};
+   
    void SetMomentum(G4ThreeVector p) {fMomentum = p;};
    G4ThreeVector GetMomentum() {return fMomentum;};
    
@@ -60,6 +63,7 @@ private:
    G4String fVolumeName;
    G4ThreeVector fPosition;
    G4ThreeVector fPrePosition;
+   G4ThreeVector fLocalPosition;
    G4ThreeVector fMomentum;
    G4int fIsLastStep;
       

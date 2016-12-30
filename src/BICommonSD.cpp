@@ -64,6 +64,11 @@ G4bool BICommonSD::ProcessHits(G4Step *step, G4TouchableHistory */*history*/)
    
    G4ThreeVector prePosition =  preStepPoint->GetPosition();
    newHit->SetPrePosition(prePosition);
+
+   G4TouchableHandle theTouchable = preStepPoint->GetTouchableHandle();
+   G4ThreeVector localPosition = theTouchable->GetHistory()->
+                                 GetTopTransform().TransformPoint(position);
+   newHit->SetLocalPosition(localPosition);
    
    G4ThreeVector momentum =  postStepPoint->GetMomentum();
    newHit->SetMomentum(momentum);

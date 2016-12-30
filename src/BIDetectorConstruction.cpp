@@ -131,7 +131,7 @@ G4VPhysicalVolume *BIDetectorConstruction::Construct()
    G4int cuvetteCounter = 0;
    G4ThreeVector cuvettePos = G4ThreeVector(0., 0., z*mm);
    G4RotationMatrix *cuvetteRot = new G4RotationMatrix();
-   cuvetteRot->rotateY(45.*deg);
+   cuvetteRot->rotateY(90.*deg);
    fCuvettePV = new G4PVPlacement(cuvetteRot, cuvettePos, cuvetteLV, "Cuvette", fWorldLV,
                                   false, cuvetteCounter++, fCheckOverlap);
    /*

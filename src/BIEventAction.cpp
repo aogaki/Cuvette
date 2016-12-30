@@ -109,7 +109,12 @@ void BIEventAction::EndOfEventAction(const G4Event *event)
 
          G4int trackID = newHit->GetTrackID();
          anaMan->FillNtupleIColumn(0, 15, trackID);
-      }
+
+         G4ThreeVector localPosition = newHit->GetLocalPosition();
+         anaMan->FillNtupleDColumn(0, 16, localPosition.x());
+         anaMan->FillNtupleDColumn(0, 17, localPosition.y());
+         anaMan->FillNtupleDColumn(0, 18, localPosition.z());
+}
       
       anaMan->AddNtupleRow(0);
    }
