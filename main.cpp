@@ -7,6 +7,7 @@
 #include "G4RunManager.hh"
 #endif
 
+#include "G4SystemOfUnits.hh"
 #include "G4UImanager.hh"
 #include "FTFP_BERT.hh"
 #include "QGSP_BERT_HP.hh"
@@ -73,7 +74,7 @@ int main(int argc, char **argv)
 {
    G4String macro = "";
    G4bool showAll = false;
-   BeamType beamType = kSecondBeam;
+   BeamType beamType = kFirstBeam;
    G4bool forGrid = false;
    G4bool useQuarter = false;
    G4bool useShm = false;
@@ -139,9 +140,9 @@ int main(int argc, char **argv)
    G4VModularPhysicsList *physicsList = new Shielding;
    //G4VModularPhysicsList *physicsList = new BIDNAPhysicsList;
    physicsList->SetVerboseLevel(0);
-   physicsList->SetCutValue(1.*um, "proton");
-   physicsList->SetCuts();
-   physicsList->SetDefaultCutValue(100.*um);
+   //physicsList->SetCutValue(1.*um, "proton");
+   //physicsList->SetCuts();
+   //physicsList->SetDefaultCutValue(100.*um);
    runManager->SetUserInitialization(physicsList);
 
    // Primary generator action and User action intialization

@@ -22,6 +22,7 @@
 #include "G4UnionSolid.hh"
 #include "G4SubtractionSolid.hh"
 #include "G4IntersectionSolid.hh"
+#include "G4SDManager.hh"
 
 #include "BIDetectorConstruction.hpp"
 #include "BICommonSD.hpp"
@@ -58,7 +59,9 @@ BIDetectorConstruction::BIDetectorConstruction(G4bool forGrid)
      fTissueMat(nullptr),
      fQuartzMat(nullptr),
      fPlasticMat(nullptr),
-     fGlassMat(nullptr)
+     fGlassMat(nullptr),
+     fMessenger(nullptr),
+     fCuvettePV(nullptr)
 {
    fCut = false;
    fCheckOverlap = true;
@@ -66,6 +69,8 @@ BIDetectorConstruction::BIDetectorConstruction(G4bool forGrid)
    fForGrid = forGrid;
    
    DefineMaterial();
+
+   DefineCommands();
 }
 
 BIDetectorConstruction::~BIDetectorConstruction()
@@ -89,9 +94,9 @@ void BIDetectorConstruction::DefineMaterial()
    fGlassMat = manager->FindOrBuildMaterial("G4_GLASS_PLATE");
    fPlasticMat = manager->FindOrBuildMaterial("G4_PLEXIGLASS");
 
-   //fCuvetteMat = fQuartzMat;
+   fCuvetteMat = fQuartzMat;
    //fCuvetteMat = fPlasticMat;
-   fCuvetteMat = fGlassMat;
+   //fCuvetteMat = fGlassMat;
    //fCuvetteMat = fVacuumMat;
    
    // This shuld be changed (i.e. fLangMat, fHeartMat, or etc.)
@@ -124,13 +129,20 @@ G4VPhysicalVolume *BIDetectorConstruction::Construct()
    G4double yPitch = 48.75;
    G4double z = 0.25 + 5 + 6.25;
    G4int cuvetteCounter = 0;
-   for(G4double y = yPitch * -0.5; y < yPitch * 1.; y += yPitch){
-      for(G4double x = xPitch * -4.5; x < xPitch * 5.; x += xPitch){
+   G4ThreeVector cuvettePos = G4ThreeVector(0., 0., z*mm);
+   G4RotationMatrix *cuvetteRot = new G4RotationMatrix();
+   cuvetteRot->rotateY(45.*deg);
+   fCuvettePV = new G4PVPlacement(cuvetteRot, cuvettePos, cuvetteLV, "Cuvette", fWorldLV,
+                                  false, cuvetteCounter++, fCheckOverlap);
+   /*
+   for(G4double y = yPitch * -1.; y <= yPitch * 1.; y += yPitch){
+      for(G4double x = xPitch * -1.; x <= xPitch * 1.; x += xPitch){
          G4ThreeVector cuvettePos = G4ThreeVector(x*mm, y*mm, z*mm);
          new G4PVPlacement(nullptr, cuvettePos, cuvetteLV, "Cuvette", fWorldLV,
                            false, cuvetteCounter++, fCheckOverlap);
       }
    }
+   */
    return worldPV;
 }
 
@@ -182,25 +194,49 @@ G4LogicalVolume *BIDetectorConstruction::ConstructCuvette()
 void BIDetectorConstruction::ConstructSDandField()
 {
    if(fForGrid){
-      G4VSensitiveDetector *SmallSD = new BICommonSD("Small",
-                                                     "SmallHitsCollection");
+      G4VSensitiveDetector *smallSD = new BISmallSD("SmallSD", "CommonHC");
+      G4SDManager::GetSDMpointer()->AddNewDetector(smallSD);
       G4LogicalVolumeStore *lvStore = G4LogicalVolumeStore::GetInstance();
       std::vector<G4LogicalVolume*>::const_iterator it;
       for(it = lvStore->begin(); it != lvStore->end(); it++){
          if((*it)->GetName() == "Water")
-            SetSensitiveDetector((*it)->GetName(), SmallSD);
+            SetSensitiveDetector((*it)->GetName(), smallSD);
       }
    }
    else{
-      G4VSensitiveDetector *CommonSD = new BICommonSD("Common",
-                                                      "CommonHitsCollection");
- 
+      G4VSensitiveDetector *commonSD = new BICommonSD("CommonSD", "CommonHC");
+      G4SDManager::GetSDMpointer()->AddNewDetector(commonSD); 
       G4LogicalVolumeStore *lvStore = G4LogicalVolumeStore::GetInstance();
       std::vector<G4LogicalVolume*>::const_iterator it;
       for(it = lvStore->begin(); it != lvStore->end(); it++){
          if((*it)->GetName() != "World")
-            SetSensitiveDetector((*it)->GetName(), CommonSD);
+            SetSensitiveDetector((*it)->GetName(), commonSD);
       }
    }
+}
 
+void BIDetectorConstruction::DefineCommands()
+{
+   fMessenger = new G4GenericMessenger(this, "/BI/Geometry/", 
+                                       "For geometries");
+
+   G4GenericMessenger::Command &rotationCmd
+      = fMessenger->DeclareMethodWithUnit("RotationY", "deg",
+                                          &BIDetectorConstruction::SetRotationY, 
+                                          "Set the rotation Y in deg.");
+   rotationCmd.SetParameterName("rotation", true);
+   rotationCmd.SetRange("rotation>=0. && rotation<=360.");
+   rotationCmd.SetDefaultValue("0.0");
+}
+
+void BIDetectorConstruction::SetRotationY(G4double rotY)
+{
+   if(fCuvettePV != nullptr){
+      G4RotationMatrix *rot = fCuvettePV->GetRotation();
+      *rot = G4RotationMatrix(); // set rotation Y = 0.
+      rot->rotateY(rotY);
+      fCuvettePV->SetRotation(rot);
+      
+      G4RunManager::GetRunManager()->GeometryHasBeenModified();
+   }
 }

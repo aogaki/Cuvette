@@ -141,9 +141,12 @@ void BIPrimaryGeneratorAction::GeneratePrimaries(G4Event *event)
 
 void BIPrimaryGeneratorAction::FirstBeamGun()
 {
+   G4AutoLock lock(&mutexInPGA);
    fEnergy = fEneFnc->GetRandom() * MeV;
-
-   G4double x = (G4UniformRand() * 12.5 - 6.25)*mm;
+   lock.unlock();
+   
+   //G4double x = (G4UniformRand() * 12.5 - 6.25)*mm;
+   G4double x = (G4UniformRand() * 12.5 - 6.25) * 1.41421356*mm;
    G4double y = (G4UniformRand() * 48.75 - 24.375)*mm;
 
    fParticleGun->SetParticlePosition(G4ThreeVector(x, y, fZPosition));
@@ -167,11 +170,16 @@ void BIPrimaryGeneratorAction::SecondBeamGun()
 
 void BIPrimaryGeneratorAction::ThirdBeamGun()
 {
+   G4AutoLock lock(&mutexInPGA);
    fEnergy = fEneFnc->GetRandom() * MeV;
+   lock.unlock();
    
    G4double theta;
-   if(fEnergy > 30.*MeV)
+   if(fEnergy > 30.*MeV){
+      lock.lock();
       theta = fAngFnc->GetRandom() * deg;
+      lock.unlock();
+   }
    else
       theta = acos(1. - G4UniformRand() * (1. - cos(20.*deg)));
    G4double phi = G4UniformRand() * fPhiLimit;

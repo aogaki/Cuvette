@@ -47,8 +47,13 @@ private:
    
    // Geometries
    G4LogicalVolume *ConstructCuvette();
-   
    std::vector<G4VisAttributes *> fVisAttributes;
+   
+   // Commands
+   void DefineCommands();
+   void SetRotationY(G4double rotY); // in degree
+   G4GenericMessenger *fMessenger;
+   G4VPhysicalVolume *fCuvettePV;
 };
 
 #endif
