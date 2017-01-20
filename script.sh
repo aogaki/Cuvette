@@ -1,14 +1,12 @@
 #!/bin/bash
 
-echo "/run/beamOn 50000000" > tmp.mac
-
-for matName in plastic
+for matName in plastic quartz glass
 do
-    for((i=0;i<200;i++))
+    for angle in 30 60 90 120 150 180 210 240 270 300 330 360
     do
-	./$matName --grid -s -m tmp.mac
-	hadd -f $matName$i.root /dev/shm/result_t*
+	echo "/BI/Geometry/RotationY $angle" > tmp.mac
+	echo "/run/beamOn 10000000" >>tmp.mac	
+	./$matName -m tmp.mac
+	hadd -f $matName$angle.root result_t*
     done
 done
-
-rm -f /dev/shm/result*

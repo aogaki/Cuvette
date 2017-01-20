@@ -67,12 +67,13 @@ void BIEventAction::EndOfEventAction(const G4Event *event)
          G4ThreeVector position = newHit->GetPosition();
          anaMan->FillNtupleDColumn(0, 1, position.x());
          anaMan->FillNtupleDColumn(0, 2, position.y());
+         anaMan->FillNtupleDColumn(0, 3, position.z());
 
          G4int trackID = newHit->GetTrackID();
-         anaMan->FillNtupleIColumn(0, 3, trackID);
+         anaMan->FillNtupleIColumn(0, 4, trackID);
 
          G4int pdgCode = newHit->GetPDGCode();
-         anaMan->FillNtupleIColumn(0, 4, pdgCode);
+         anaMan->FillNtupleIColumn(0, 5, pdgCode);
       }
       else {
          anaMan->FillNtupleIColumn(0, 0, eventID); // EventID

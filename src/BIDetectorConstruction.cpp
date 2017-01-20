@@ -23,6 +23,7 @@
 #include "G4SubtractionSolid.hh"
 #include "G4IntersectionSolid.hh"
 #include "G4SDManager.hh"
+#include "G4PVReplica.hh"
 
 #include "BIDetectorConstruction.hpp"
 #include "BICommonSD.hpp"
@@ -94,9 +95,9 @@ void BIDetectorConstruction::DefineMaterial()
    fGlassMat = manager->FindOrBuildMaterial("G4_GLASS_PLATE");
    fPlasticMat = manager->FindOrBuildMaterial("G4_PLEXIGLASS");
 
-   fCuvetteMat = fQuartzMat;
+   //fCuvetteMat = fQuartzMat;
    //fCuvetteMat = fPlasticMat;
-   //fCuvetteMat = fGlassMat;
+   fCuvetteMat = fGlassMat;
    //fCuvetteMat = fVacuumMat;
    
    // This shuld be changed (i.e. fLangMat, fHeartMat, or etc.)
@@ -131,7 +132,7 @@ G4VPhysicalVolume *BIDetectorConstruction::Construct()
    G4int cuvetteCounter = 0;
    G4ThreeVector cuvettePos = G4ThreeVector(0., 0., z*mm);
    G4RotationMatrix *cuvetteRot = new G4RotationMatrix();
-   cuvetteRot->rotateY(90.*deg);
+   //cuvetteRot->rotateY(90.*deg);
    fCuvettePV = new G4PVPlacement(cuvetteRot, cuvettePos, cuvetteLV, "Cuvette", fWorldLV,
                                   false, cuvetteCounter++, fCheckOverlap);
    /*
@@ -143,6 +144,7 @@ G4VPhysicalVolume *BIDetectorConstruction::Construct()
       }
    }
    */
+
    return worldPV;
 }
 
@@ -176,7 +178,37 @@ G4LogicalVolume *BIDetectorConstruction::ConstructCuvette()
    G4ThreeVector waterPos = G4ThreeVector(0., -(coverT - wallT) / 2., 0.);
    new G4PVPlacement(nullptr, waterPos, waterLV, "Water", cuvetteLV,
                      false, 0, fCheckOverlap);
+   /*
+   // mesh
+   G4double meshSize = 10.*um;
+   
+   G4Box *waterColumnS
+      = new G4Box("WaterColumn", meshSize / 2., 45.*mm / 2., 10.*mm / 2.);
+   G4LogicalVolume *waterColumnLV
+      = new G4LogicalVolume(waterColumnS, fWaterMat, "WaterColumnLogical");
+   new G4PVReplica("WaterColumnPhysical", waterColumnLV,
+                   waterLV, kXAxis, 1000, meshSize);
+  
+   G4Box *waterRowS
+      = new G4Box("WaterRow", meshSize / 2., 45.*mm / 2., meshSize / 2.);
+   G4LogicalVolume *waterRowLV
+      = new G4LogicalVolume(waterRowS, fWaterMat, "WaterRowLogical");
+   new G4PVReplica("WaterRowPhysical", waterRowLV,
+                   waterColumnLV, kZAxis, 1000, meshSize);
+  
+   G4Box *waterMeshS
+      = new G4Box("WaterMesh", meshSize / 2., meshSize / 2., meshSize / 2.);
+   G4LogicalVolume *waterMeshLV
+      = new G4LogicalVolume(waterMeshS, fWaterMat, "WaterMeshLogical");
+   new G4PVReplica("WaterMeshPhysical", waterMeshLV,
+                   waterRowLV, kYAxis, 4500, meshSize);
 
+   visAttributes->SetVisibility(false);
+   waterColumnLV->SetVisAttributes(visAttributes);
+   waterRowLV->SetVisAttributes(visAttributes);
+   waterMeshLV->SetVisAttributes(visAttributes);
+   fVisAttributes.push_back(visAttributes);
+   */
    // cover of cuvette
    G4Box *coverS = new G4Box("Cover", cuvetteW / 2., coverT / 2., cuvetteL / 2.);
    G4LogicalVolume *coverLV = new G4LogicalVolume(coverS, fCoverMat, "Cover");
@@ -209,7 +241,9 @@ void BIDetectorConstruction::ConstructSDandField()
       G4LogicalVolumeStore *lvStore = G4LogicalVolumeStore::GetInstance();
       std::vector<G4LogicalVolume*>::const_iterator it;
       for(it = lvStore->begin(); it != lvStore->end(); it++){
-         if((*it)->GetName() != "World")
+         //if((*it)->GetName() != "World")
+         if((*it)->GetName().contains("Water"))
+            //if((*it)->GetName().contains("Mesh"))
             SetSensitiveDetector((*it)->GetName(), commonSD);
       }
    }

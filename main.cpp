@@ -141,8 +141,8 @@ int main(int argc, char **argv)
    //G4VModularPhysicsList *physicsList = new BIDNAPhysicsList;
    physicsList->SetVerboseLevel(0);
    //physicsList->SetCutValue(1.*um, "proton");
-   //physicsList->SetCuts();
-   //physicsList->SetDefaultCutValue(100.*um);
+   physicsList->SetDefaultCutValue(10.*um);
+   physicsList->SetCuts();
    runManager->SetUserInitialization(physicsList);
 
    // Primary generator action and User action intialization
